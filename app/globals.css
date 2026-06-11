@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(255, 90, 122, 0.14), transparent 22rem),
+    radial-gradient(circle at 90% 12%, rgba(30, 196, 184, 0.14), transparent 24rem),
+    linear-gradient(180deg, #fff8f1 0%, #f9f4ff 48%, #f2fbfa 100%);
+  color: #0b0b0d;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.gold-ring {
+  background:
+    radial-gradient(circle at 12% 14%, rgba(255, 203, 92, 0.42), transparent 18rem),
+    radial-gradient(circle at 88% 18%, rgba(255, 91, 135, 0.42), transparent 20rem),
+    radial-gradient(circle at 70% 82%, rgba(37, 205, 190, 0.32), transparent 22rem),
+    linear-gradient(135deg, #151019 0%, #2b1230 48%, #112f34 100%);
+}
+
+.fiesta-card {
+  @apply rounded border border-white/70 bg-white/90 shadow-sm backdrop-blur;
+}
+
+.confetti-band {
+  background-image:
+    linear-gradient(90deg, #ff5b87 0 16%, transparent 16% 22%, #ffcc5c 22% 38%, transparent 38% 46%, #25cdbe 46% 62%, transparent 62% 70%, #8b5cf6 70% 86%, transparent 86% 100%);
+  background-size: 120px 6px;
+}
+
+.field {
+  @apply w-full rounded border border-neutral-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#ff5b87] focus:ring-2 focus:ring-[#ff5b87]/25;
+}
+
+.label {
+  @apply text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded bg-[#ffcc5c] px-5 py-3 text-sm font-bold text-ink transition hover:bg-[#ffbd2e] disabled:cursor-not-allowed disabled:opacity-60;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center rounded border border-neutral-300 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-[#25cdbe] hover:text-black disabled:cursor-not-allowed disabled:opacity-60;
+}
+
+.btn-danger {
+  @apply inline-flex items-center justify-center rounded border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:border-red-300 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60;
+}
