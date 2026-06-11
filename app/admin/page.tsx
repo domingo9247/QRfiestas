@@ -124,7 +124,7 @@ export default function AdminDashboardPage() {
         <div className="grid gap-4 md:grid-cols-2">
           {events.map((eventItem) => (
             <article key={eventItem.id} className="fiesta-card p-5 transition hover:border-[#ff5b87]">
-              <Link href={`/admin/events/${eventItem.id}`}>
+              <Link href={`/admin/events/${eventItem.code}`}>
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h2 className="text-xl font-bold text-ink">{eventItem.name}</h2>

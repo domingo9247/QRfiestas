@@ -22,37 +22,48 @@ export function getBaseUrl() {
 }
 
 export async function getEventByCode(code: string) {
+  const normalizedCode = code.toUpperCase();
+
   if (isDemoAdminSession()) {
-    const localEvent = getDemoEventByCode(code);
+    const localEvent = getDemoEventByCode(normalizedCode);
     if (localEvent) return localEvent;
   }
 
-  if (!hasFirebaseConfig()) {
-    const response = await fetch(`/api/demo/events/${code.toUpperCase()}`);
-    if (!response.ok) return null;
-    return (await response.json()) as FiestaEvent;
+  if (hasFirebaseConfig()) {
+    try {
+      const snap = await getDoc(doc(db, "events", normalizedCode));
+      if (snap.exists()) return { id: snap.id, ...snap.data() } as FiestaEvent;
+    } catch {
+      // Fall through to demo API for local/demo environments.
+    }
   }
 
-  const snap = await getDoc(doc(db, "events", code.toUpperCase()));
-  if (!snap.exists()) return null;
-  return { id: snap.id, ...snap.data() } as FiestaEvent;
+  const response = await fetch(`/api/demo/events/${normalizedCode}`);
+  if (!response.ok) return null;
+  return (await response.json()) as FiestaEvent;
 }
 
 export async function getUploadsByEventCode(code: string) {
+  const normalizedCode = code.toUpperCase();
+
   if (isDemoAdminSession()) {
-    const localUploads = getDemoUploadsByEventCode(code);
+    const localUploads = getDemoUploadsByEventCode(normalizedCode);
     if (localUploads.length) return localUploads;
   }
 
-  if (!hasFirebaseConfig()) {
-    const response = await fetch(`/api/demo/uploads/${code.toUpperCase()}`);
-    if (!response.ok) return [];
-    return (await response.json()) as UploadItem[];
+  if (hasFirebaseConfig()) {
+    try {
+      const uploadsQuery = query(collection(db, "uploads"), where("eventCode", "==", normalizedCode));
+      const snap = await getDocs(uploadsQuery);
+      return snap.docs.map((uploadDoc) => ({ id: uploadDoc.id, ...uploadDoc.data() }) as UploadItem);
+    } catch {
+      // Fall through to demo API for local/demo environments.
+    }
   }
 
-  const uploadsQuery = query(collection(db, "uploads"), where("eventCode", "==", code));
-  const snap = await getDocs(uploadsQuery);
-  return snap.docs.map((uploadDoc) => ({ id: uploadDoc.id, ...uploadDoc.data() }) as UploadItem);
+  const response = await fetch(`/api/demo/uploads/${normalizedCode}`);
+  if (!response.ok) return [];
+  return (await response.json()) as UploadItem[];
 }
 
 export function formatEventType(value: string) {
