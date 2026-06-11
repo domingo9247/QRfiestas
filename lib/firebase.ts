@@ -25,9 +25,12 @@ export function hasFirebaseConfig() {
     process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
       process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN &&
       process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID &&
-      process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET &&
       process.env.NEXT_PUBLIC_FIREBASE_APP_ID
   );
+}
+
+export function hasFirebaseStorageConfig() {
+  return hasFirebaseConfig() && Boolean(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET);
 }
 
 export function createSecondaryAuth() {

@@ -3,8 +3,7 @@
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { FormEvent, useMemo, useState } from "react";
-import { db, storage } from "@/lib/firebase";
-import { hasFirebaseConfig } from "@/lib/firebase";
+import { db, hasFirebaseStorageConfig, storage } from "@/lib/firebase";
 import { validateUploadFile } from "@/lib/uploads";
 import type { FiestaEvent } from "@/lib/types";
 
@@ -75,7 +74,7 @@ export function UploadForm({ eventData }: { eventData: FiestaEvent }) {
     setProgress(0);
 
     try {
-      if (!hasFirebaseConfig()) {
+      if (!hasFirebaseStorageConfig()) {
         const formData = new FormData();
         formData.append("eventCode", eventData.code);
         formData.append("guestName", guestName.trim());
