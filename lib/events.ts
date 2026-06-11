@@ -33,6 +33,11 @@ export async function getEventByCode(code: string) {
     try {
       const snap = await getDoc(doc(db, "events", normalizedCode));
       if (snap.exists()) return { id: snap.id, ...snap.data() } as FiestaEvent;
+
+      const eventsQuery = query(collection(db, "events"), where("code", "==", normalizedCode));
+      const querySnap = await getDocs(eventsQuery);
+      const firstMatch = querySnap.docs[0];
+      if (firstMatch) return { id: firstMatch.id, ...firstMatch.data() } as FiestaEvent;
     } catch {
       // Fall through to demo API for local/demo environments.
     }
