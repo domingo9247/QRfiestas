@@ -1,18 +1,17 @@
 "use client";
 
-import { signOut } from "firebase/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuthGuard } from "@/components/AuthGuard";
+import { endAdminSession } from "@/lib/adminSession";
 import { endDemoAdminSession } from "@/lib/demoStore";
-import { auth } from "@/lib/firebase";
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   async function handleLogout() {
+    endAdminSession();
     endDemoAdminSession();
-    await signOut(auth);
     router.push("/");
   }
 

@@ -1,11 +1,10 @@
 "use client";
 
-import { signInWithEmailAndPassword } from "firebase/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { startAdminSession } from "@/lib/adminSession";
 import { DEMO_ADMIN_EMAIL, DEMO_ADMIN_PASSWORD, isLocalDemoHost, startDemoAdminSession } from "@/lib/demoStore";
-import { auth } from "@/lib/firebase";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,10 +26,21 @@ export default function LoginPage() {
     }
 
     try {
-      await signInWithEmailAndPassword(auth, email.trim(), password);
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!response.ok) {
+        setError("Email o contrasena incorrectos.");
+        return;
+      }
+
+      startAdminSession();
       router.push("/admin");
     } catch {
-      setError("Email o contrasena incorrectos.");
+      setError("No se pudo iniciar sesion.");
     } finally {
       setLoading(false);
     }
