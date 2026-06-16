@@ -3,12 +3,18 @@
 import type { ClientUser, FiestaEvent, UploadItem } from "@/lib/types";
 
 export const DEMO_ADMIN_EMAIL = "admin@qrfiesta.com";
-export const DEMO_ADMIN_PASSWORD = "admin123";
+export const DEMO_ADMIN_PASSWORD = "QRF!esta-Demo-2026";
 export const DEMO_ADMIN_KEY = "qr-fiesta-demo-admin";
 const DEMO_CLIENT_KEY = "qr-fiesta-demo-client";
 const EVENTS_KEY = "qr-fiesta-demo-events";
 const CLIENTS_KEY = "qr-fiesta-demo-clients";
 const UPLOADS_KEY = "qr-fiesta-demo-uploads";
+
+export function isLocalDemoHost() {
+  if (typeof window === "undefined") return false;
+  const host = window.location.hostname;
+  return host === "localhost" || host === "127.0.0.1" || host.startsWith("192.168.");
+}
 
 function readItems<T>(key: string): T[] {
   if (typeof window === "undefined") return [];
@@ -27,10 +33,8 @@ function writeItems<T>(key: string, items: T[]) {
 
 export function isDemoAdminSession() {
   if (typeof window === "undefined") return false;
-  const host = window.location.hostname;
-  const localHost = host === "localhost" || host === "127.0.0.1" || host.startsWith("192.168.");
 
-  if (process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID && !localHost) {
+  if (process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID && !isLocalDemoHost()) {
     return false;
   }
 

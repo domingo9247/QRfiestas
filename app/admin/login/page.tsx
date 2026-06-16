@@ -4,13 +4,14 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { DEMO_ADMIN_EMAIL, DEMO_ADMIN_PASSWORD, startDemoAdminSession } from "@/lib/demoStore";
+import { DEMO_ADMIN_EMAIL, DEMO_ADMIN_PASSWORD, isLocalDemoHost, startDemoAdminSession } from "@/lib/demoStore";
 import { auth } from "@/lib/firebase";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState(DEMO_ADMIN_EMAIL);
-  const [password, setPassword] = useState(DEMO_ADMIN_PASSWORD);
+  const [demoEnabled] = useState(() => isLocalDemoHost());
+  const [email, setEmail] = useState(() => (isLocalDemoHost() ? DEMO_ADMIN_EMAIL : ""));
+  const [password, setPassword] = useState(() => (isLocalDemoHost() ? DEMO_ADMIN_PASSWORD : ""));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -19,14 +20,14 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
-    if (email.trim().toLowerCase() === DEMO_ADMIN_EMAIL && password === DEMO_ADMIN_PASSWORD) {
+    if (demoEnabled && email.trim().toLowerCase() === DEMO_ADMIN_EMAIL && password === DEMO_ADMIN_PASSWORD) {
       startDemoAdminSession();
       router.push("/admin");
       return;
     }
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, email.trim(), password);
       router.push("/admin");
     } catch {
       setError("Email o contrasena incorrectos.");
@@ -43,11 +44,13 @@ export default function LoginPage() {
         </Link>
         <h1 className="mt-5 text-3xl font-black text-ink">Acceso admin</h1>
         <p className="mt-2 text-sm text-neutral-500">Entra para crear eventos, clientes y QR.</p>
-        <div className="mt-5 rounded bg-neutral-50 p-4 text-sm text-neutral-700">
-          <p className="font-bold text-ink">Usuario demo</p>
-          <p>Email: {DEMO_ADMIN_EMAIL}</p>
-          <p>Contrasena: {DEMO_ADMIN_PASSWORD}</p>
-        </div>
+        {demoEnabled ? (
+          <div className="mt-5 rounded bg-neutral-50 p-4 text-sm text-neutral-700">
+            <p className="font-bold text-ink">Usuario demo local</p>
+            <p>Email: {DEMO_ADMIN_EMAIL}</p>
+            <p>Contrasena: {DEMO_ADMIN_PASSWORD}</p>
+          </div>
+        ) : null}
         <label className="mt-6 block space-y-2">
           <span className="label">Email</span>
           <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required className="field" />
