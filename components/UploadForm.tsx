@@ -1,6 +1,7 @@
 "use client";
 
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { FirebaseError } from "firebase/app";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { FormEvent, useMemo, useState } from "react";
 import { db, hasFirebaseStorageConfig, storage } from "@/lib/firebase";
@@ -99,8 +100,14 @@ export function UploadForm({ eventData }: { eventData: FiestaEvent }) {
       setFiles([]);
       setProgress(100);
       setStatus("Listo. Tus recuerdos ya están guardados para el evento.");
-    } catch {
-      setStatus("No se pudo completar la subida. Intenta de nuevo.");
+    } catch (uploadError) {
+      if (uploadError instanceof FirebaseError) {
+        setStatus(`No se pudo completar la subida: ${uploadError.code}`);
+      } else if (uploadError instanceof Error) {
+        setStatus(`No se pudo completar la subida: ${uploadError.message}`);
+      } else {
+        setStatus("No se pudo completar la subida. Intenta de nuevo.");
+      }
     } finally {
       setUploading(false);
     }
