@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { getDemoClients, startDemoClientSession } from "@/lib/demoStore";
 import { startClientSession } from "@/lib/clientSession";
-import { db, hasFirebaseConfig } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import type { FiestaEvent } from "@/lib/types";
 
 export default function ClientLoginPage() {
@@ -20,34 +20,6 @@ export default function ClientLoginPage() {
     event.preventDefault();
     setLoading(true);
     setError("");
-
-    if (!hasFirebaseConfig()) {
-      let clientUid = "";
-      const client = getDemoClients().find(
-        (item) => item.email.trim().toLowerCase() === email.trim().toLowerCase() && item.password === password
-      );
-
-      if (client) clientUid = client.uid;
-
-      if (!clientUid) {
-        const response = await fetch("/api/demo/events");
-        const events = response.ok ? ((await response.json()) as FiestaEvent[]) : [];
-        const eventItem = events.find(
-          (item) => item.clientEmail?.trim().toLowerCase() === email.trim().toLowerCase() && item.clientPassword === password
-        );
-        if (eventItem?.clientUid) clientUid = eventItem.clientUid;
-      }
-
-      if (clientUid) {
-        startDemoClientSession(clientUid);
-        router.push("/cliente");
-      } else {
-        setError("Email o contrasena incorrectos. Usa el cliente creado desde el panel admin.");
-      }
-
-      setLoading(false);
-      return;
-    }
 
     try {
       const normalizedEmail = email.trim().toLowerCase();
@@ -68,14 +40,37 @@ export default function ClientLoginPage() {
       );
 
       if (!eventItem?.clientUid) {
-        setError("Email o contrasena incorrectos. Usa el acceso que se creo dentro del evento.");
+        setError(`Email o contrasena incorrectos. Revise ${events.length} evento(s) con ese correo.`);
         return;
       }
 
       startClientSession(eventItem.clientUid);
       router.push("/cliente");
     } catch {
-      setError("No se pudo validar el acceso del cliente. Intenta de nuevo.");
+      let clientUid = "";
+      const client = getDemoClients().find(
+        (item) => item.email.trim().toLowerCase() === email.trim().toLowerCase() && item.password?.trim() === password.trim()
+      );
+
+      if (client) clientUid = client.uid;
+
+      if (!clientUid) {
+        const response = await fetch("/api/demo/events");
+        const events = response.ok ? ((await response.json()) as FiestaEvent[]) : [];
+        const eventItem = events.find(
+          (item) =>
+            item.clientEmail?.trim().toLowerCase() === email.trim().toLowerCase() &&
+            item.clientPassword?.trim() === password.trim()
+        );
+        if (eventItem?.clientUid) clientUid = eventItem.clientUid;
+      }
+
+      if (clientUid) {
+        startDemoClientSession(clientUid);
+        router.push("/cliente");
+      } else {
+        setError("No se pudo validar el acceso. Revisa que el evento tenga email y password temporal guardados.");
+      }
     } finally {
       setLoading(false);
     }

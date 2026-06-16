@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { ClientShell } from "@/components/ClientShell";
 import { useClientUser } from "@/components/ClientGuard";
 import { getDemoClientSession } from "@/lib/demoStore";
-import { db, hasFirebaseConfig } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import { formatEventType, getUploadsByEventCode } from "@/lib/events";
 import type { FiestaEvent } from "@/lib/types";
 
@@ -19,7 +19,22 @@ function ClientEvents() {
 
   useEffect(() => {
     async function loadEvents() {
-      if (!hasFirebaseConfig()) {
+      if (!clientUid) return;
+
+      try {
+        const eventsQuery = query(collection(db, "events"), where("clientUid", "==", clientUid));
+        const snap = await getDocs(eventsQuery);
+        const baseEvents = snap.docs.map((eventDoc) => ({ id: eventDoc.id, ...eventDoc.data() }) as FiestaEvent);
+        const withCounts = await Promise.all(
+          baseEvents.map(async (eventItem) => {
+            const uploads = await getUploadsByEventCode(eventItem.code);
+            return { ...eventItem, uploadCount: uploads.length };
+          })
+        );
+        setEvents(withCounts);
+        setLoading(false);
+        return;
+      } catch {
         const demoClientUid = clientUid || getDemoClientSession();
         const response = await fetch("/api/demo/events");
         const allEvents = response.ok ? ((await response.json()) as FiestaEvent[]) : [];
@@ -34,19 +49,6 @@ function ClientEvents() {
         setLoading(false);
         return;
       }
-
-      if (!clientUid) return;
-      const eventsQuery = query(collection(db, "events"), where("clientUid", "==", clientUid));
-      const snap = await getDocs(eventsQuery);
-      const baseEvents = snap.docs.map((eventDoc) => ({ id: eventDoc.id, ...eventDoc.data() }) as FiestaEvent);
-      const withCounts = await Promise.all(
-        baseEvents.map(async (eventItem) => {
-          const uploads = await getUploadsByEventCode(eventItem.code);
-          return { ...eventItem, uploadCount: uploads.length };
-        })
-      );
-      setEvents(withCounts);
-      setLoading(false);
     }
 
     loadEvents().catch(() => setLoading(false));
