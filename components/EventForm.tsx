@@ -1,13 +1,12 @@
 "use client";
 
-import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { isDemoAdminSession, saveDemoClient, saveDemoEvent } from "@/lib/demoStore";
 import { eventTypes, generateEventCode, getBaseUrl } from "@/lib/events";
-import { createSecondaryAuth, db } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import type { ClientUser, EventType } from "@/lib/types";
 
 export function EventForm() {
@@ -72,22 +71,6 @@ export function EventForm() {
         });
         router.push(`/admin/events/${code}`);
         return;
-      }
-
-      const { secondaryAuth, dispose } = createSecondaryAuth();
-      try {
-        const result = await createUserWithEmailAndPassword(secondaryAuth, normalizedClientEmail, normalizedClientPassword);
-        clientUid = result.user.uid;
-        await setDoc(doc(db, "users", clientUid), {
-          uid: clientUid,
-          name: clientName,
-          email: normalizedClientEmail,
-          role: "client",
-          createdAt: serverTimestamp()
-        });
-        await signOut(secondaryAuth);
-      } finally {
-        await dispose();
       }
 
       await setDoc(doc(db, "events", code), {
