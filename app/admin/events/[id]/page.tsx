@@ -110,6 +110,9 @@ export default function AdminEventPage() {
                   <span className="block text-sm text-neutral-500">Cliente</span>
                   <strong>{eventData.clientName || "Sin cliente asignado"}</strong>
                   {eventData.clientEmail ? <p className="mt-1 text-sm text-neutral-500">{eventData.clientEmail}</p> : null}
+                  {eventData.clientPassword ? (
+                    <p className="mt-1 text-sm text-neutral-500">Password temporal: {eventData.clientPassword}</p>
+                  ) : null}
                 </div>
                 <div className="rounded bg-neutral-50 p-4">
                   <span className="block text-sm text-neutral-500">Liga para invitados</span>

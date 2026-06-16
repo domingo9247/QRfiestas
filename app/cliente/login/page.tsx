@@ -1,5 +1,6 @@
 "use client";
 
+import { FirebaseError } from "firebase/app";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -51,8 +52,20 @@ export default function ClientLoginPage() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/cliente");
-    } catch {
-      setError("Email o contrasena incorrectos.");
+    } catch (loginError) {
+      if (loginError instanceof FirebaseError) {
+        if (loginError.code === "auth/user-not-found" || loginError.code === "auth/invalid-credential") {
+          setError("Email o contrasena incorrectos. Revisa el acceso temporal del evento.");
+        } else if (loginError.code === "auth/wrong-password") {
+          setError("Contrasena incorrecta. Revisa mayusculas, minusculas y espacios.");
+        } else if (loginError.code === "auth/too-many-requests") {
+          setError("Demasiados intentos. Espera unos minutos y vuelve a probar.");
+        } else {
+          setError(`Firebase Auth: ${loginError.code}`);
+        }
+      } else {
+        setError("No se pudo iniciar sesion. Intenta de nuevo.");
+      }
     } finally {
       setLoading(false);
     }

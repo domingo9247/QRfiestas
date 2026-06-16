@@ -1,6 +1,7 @@
 "use client";
 
 import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
+import { FirebaseError } from "firebase/app";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
@@ -99,12 +100,23 @@ export function EventForm() {
         clientUid,
         clientName,
         clientEmail,
+        clientPassword,
         createdAt: serverTimestamp()
       });
 
       router.push(`/admin/events/${code}`);
-    } catch {
-      setError("No se pudo crear el evento. Revisa el email, contrasena o permisos de Firebase.");
+    } catch (createError) {
+      if (createError instanceof FirebaseError) {
+        if (createError.code === "auth/email-already-in-use") {
+          setError("Ese email ya existe en Firebase Auth. Usa otro email para este evento o borra el usuario anterior.");
+        } else if (createError.code === "auth/weak-password") {
+          setError("La contrasena del cliente debe tener al menos 6 caracteres.");
+        } else {
+          setError(`Firebase: ${createError.code}`);
+        }
+      } else {
+        setError("No se pudo crear el evento. Revisa el email, contrasena o permisos de Firebase.");
+      }
     } finally {
       setSaving(false);
     }
