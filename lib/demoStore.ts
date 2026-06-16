@@ -27,6 +27,13 @@ function writeItems<T>(key: string, items: T[]) {
 
 export function isDemoAdminSession() {
   if (typeof window === "undefined") return false;
+  const host = window.location.hostname;
+  const localHost = host === "localhost" || host === "127.0.0.1" || host.startsWith("192.168.");
+
+  if (process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID && !localHost) {
+    return false;
+  }
+
   return window.localStorage.getItem(DEMO_ADMIN_KEY) === "true";
 }
 

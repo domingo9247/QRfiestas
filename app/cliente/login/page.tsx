@@ -47,6 +47,14 @@ export default function ClientLoginPage() {
       startClientSession(eventItem.clientUid);
       router.push("/cliente");
     } catch {
+      const host = window.location.hostname;
+      const localHost = host === "localhost" || host === "127.0.0.1" || host.startsWith("192.168.");
+
+      if (!localHost) {
+        setError("No pude leer eventos en Firestore. Revisa reglas, variables de Vercel o que el evento se haya creado en Firestore.");
+        return;
+      }
+
       let clientUid = "";
       const client = getDemoClients().find(
         (item) => item.email.trim().toLowerCase() === email.trim().toLowerCase() && item.password?.trim() === password.trim()
