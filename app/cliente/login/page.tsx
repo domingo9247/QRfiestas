@@ -50,11 +50,22 @@ export default function ClientLoginPage() {
     }
 
     try {
-      const eventsQuery = query(collection(db, "events"), where("clientEmail", "==", email.trim().toLowerCase()));
-      const snap = await getDocs(eventsQuery);
-      const eventItem = snap.docs
-        .map((eventDoc) => ({ id: eventDoc.id, ...eventDoc.data() }) as FiestaEvent)
-        .find((item) => item.clientPassword === password);
+      const normalizedEmail = email.trim().toLowerCase();
+      const normalizedPassword = password.trim();
+      const eventsQuery = query(collection(db, "events"), where("clientEmail", "==", normalizedEmail));
+      const exactSnap = await getDocs(eventsQuery);
+      let events = exactSnap.docs.map((eventDoc) => ({ id: eventDoc.id, ...eventDoc.data() }) as FiestaEvent);
+
+      if (!events.length) {
+        const allSnap = await getDocs(collection(db, "events"));
+        events = allSnap.docs.map((eventDoc) => ({ id: eventDoc.id, ...eventDoc.data() }) as FiestaEvent);
+      }
+
+      const eventItem = events.find(
+        (item) =>
+          item.clientEmail?.trim().toLowerCase() === normalizedEmail &&
+          item.clientPassword?.trim() === normalizedPassword
+      );
 
       if (!eventItem?.clientUid) {
         setError("Email o contrasena incorrectos. Usa el acceso que se creo dentro del evento.");

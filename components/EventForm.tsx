@@ -33,6 +33,8 @@ export function EventForm() {
       const publicUrl = `${baseUrl}/e/${code}`;
       const clientGalleryUrl = `${baseUrl}/cliente/events/${code}`;
       const clientName = name;
+      const normalizedClientEmail = clientEmail.trim().toLowerCase();
+      const normalizedClientPassword = clientPassword.trim();
       let clientUid = `event-client-${code}`;
 
       if (isDemoAdminSession()) {
@@ -40,8 +42,8 @@ export function EventForm() {
           id: clientUid,
           uid: clientUid,
           name: clientName,
-          email: clientEmail,
-          password: clientPassword,
+          email: normalizedClientEmail,
+          password: normalizedClientPassword,
           role: "client"
         };
 
@@ -57,8 +59,8 @@ export function EventForm() {
           clientGalleryUrl,
           clientUid,
           clientName,
-          clientEmail,
-          clientPassword
+          clientEmail: normalizedClientEmail,
+          clientPassword: normalizedClientPassword
         };
 
         saveDemoClient(demoClient);
@@ -74,12 +76,12 @@ export function EventForm() {
 
       const { secondaryAuth, dispose } = createSecondaryAuth();
       try {
-        const result = await createUserWithEmailAndPassword(secondaryAuth, clientEmail, clientPassword);
+        const result = await createUserWithEmailAndPassword(secondaryAuth, normalizedClientEmail, normalizedClientPassword);
         clientUid = result.user.uid;
         await setDoc(doc(db, "users", clientUid), {
           uid: clientUid,
           name: clientName,
-          email: clientEmail,
+          email: normalizedClientEmail,
           role: "client",
           createdAt: serverTimestamp()
         });
@@ -99,8 +101,8 @@ export function EventForm() {
         clientGalleryUrl,
         clientUid,
         clientName,
-        clientEmail,
-        clientPassword,
+        clientEmail: normalizedClientEmail,
+        clientPassword: normalizedClientPassword,
         createdAt: serverTimestamp()
       });
 
