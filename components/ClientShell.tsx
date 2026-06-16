@@ -4,6 +4,7 @@ import { signOut } from "firebase/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ClientGuard } from "@/components/ClientGuard";
+import { endClientSession } from "@/lib/clientSession";
 import { endDemoClientSession } from "@/lib/demoStore";
 import { auth } from "@/lib/firebase";
 
@@ -11,6 +12,7 @@ export function ClientShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   async function handleLogout() {
+    endClientSession();
     endDemoClientSession();
     await signOut(auth);
     router.push("/");

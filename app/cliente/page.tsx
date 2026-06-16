@@ -13,14 +13,14 @@ import type { FiestaEvent } from "@/lib/types";
 type EventWithCount = FiestaEvent & { uploadCount: number };
 
 function ClientEvents() {
-  const user = useClientUser();
+  const clientUid = useClientUser();
   const [events, setEvents] = useState<EventWithCount[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadEvents() {
       if (!hasFirebaseConfig()) {
-        const demoClientUid = getDemoClientSession();
+        const demoClientUid = clientUid || getDemoClientSession();
         const response = await fetch("/api/demo/events");
         const allEvents = response.ok ? ((await response.json()) as FiestaEvent[]) : [];
         const baseEvents = allEvents.filter((eventItem) => eventItem.clientUid === demoClientUid);
@@ -35,8 +35,8 @@ function ClientEvents() {
         return;
       }
 
-      if (!user) return;
-      const eventsQuery = query(collection(db, "events"), where("clientUid", "==", user.uid));
+      if (!clientUid) return;
+      const eventsQuery = query(collection(db, "events"), where("clientUid", "==", clientUid));
       const snap = await getDocs(eventsQuery);
       const baseEvents = snap.docs.map((eventDoc) => ({ id: eventDoc.id, ...eventDoc.data() }) as FiestaEvent);
       const withCounts = await Promise.all(
@@ -50,7 +50,7 @@ function ClientEvents() {
     }
 
     loadEvents().catch(() => setLoading(false));
-  }, [user]);
+  }, [clientUid]);
 
   return (
     <>

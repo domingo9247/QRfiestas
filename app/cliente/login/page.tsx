@@ -1,12 +1,12 @@
 "use client";
 
-import { FirebaseError } from "firebase/app";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { getDemoClients, startDemoClientSession } from "@/lib/demoStore";
-import { auth, hasFirebaseConfig } from "@/lib/firebase";
+import { startClientSession } from "@/lib/clientSession";
+import { db, hasFirebaseConfig } from "@/lib/firebase";
 import type { FiestaEvent } from "@/lib/types";
 
 export default function ClientLoginPage() {
@@ -50,22 +50,21 @@ export default function ClientLoginPage() {
     }
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push("/cliente");
-    } catch (loginError) {
-      if (loginError instanceof FirebaseError) {
-        if (loginError.code === "auth/user-not-found" || loginError.code === "auth/invalid-credential") {
-          setError("Email o contrasena incorrectos. Revisa el acceso temporal del evento.");
-        } else if (loginError.code === "auth/wrong-password") {
-          setError("Contrasena incorrecta. Revisa mayusculas, minusculas y espacios.");
-        } else if (loginError.code === "auth/too-many-requests") {
-          setError("Demasiados intentos. Espera unos minutos y vuelve a probar.");
-        } else {
-          setError(`Firebase Auth: ${loginError.code}`);
-        }
-      } else {
-        setError("No se pudo iniciar sesion. Intenta de nuevo.");
+      const eventsQuery = query(collection(db, "events"), where("clientEmail", "==", email.trim().toLowerCase()));
+      const snap = await getDocs(eventsQuery);
+      const eventItem = snap.docs
+        .map((eventDoc) => ({ id: eventDoc.id, ...eventDoc.data() }) as FiestaEvent)
+        .find((item) => item.clientPassword === password);
+
+      if (!eventItem?.clientUid) {
+        setError("Email o contrasena incorrectos. Usa el acceso que se creo dentro del evento.");
+        return;
       }
+
+      startClientSession(eventItem.clientUid);
+      router.push("/cliente");
+    } catch {
+      setError("No se pudo validar el acceso del cliente. Intenta de nuevo.");
     } finally {
       setLoading(false);
     }

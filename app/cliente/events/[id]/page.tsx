@@ -14,7 +14,7 @@ import type { FiestaEvent, UploadItem } from "@/lib/types";
 
 function ClientEventContent() {
   const params = useParams<{ id: string }>();
-  const user = useClientUser();
+  const clientUid = useClientUser();
   const [eventData, setEventData] = useState<FiestaEvent | null>(null);
   const [uploads, setUploads] = useState<UploadItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,26 +24,12 @@ function ClientEventContent() {
 
   useEffect(() => {
     async function loadEvent() {
-      if (!hasFirebaseConfig()) {
-        const eventItem = await getEventByCode(params.id);
+      const activeClientUid = clientUid || getDemoClientSession();
 
-        if (!eventItem || eventItem.clientUid !== getDemoClientSession()) {
-          setNotAllowed(true);
-          setLoading(false);
-          return;
-        }
-
-        const uploadItems = await getUploadsByEventCode(eventItem.code);
-        setEventData(eventItem);
-        setUploads(uploadItems);
-        setLoading(false);
-        return;
-      }
-
-      if (!user) return;
+      if (!activeClientUid) return;
       const eventItem = await getEventByCode(params.id);
 
-      if (!eventItem || eventItem.clientUid !== user.uid) {
+      if (!eventItem || eventItem.clientUid !== activeClientUid) {
         setNotAllowed(true);
         setLoading(false);
         return;
@@ -56,7 +42,7 @@ function ClientEventContent() {
     }
 
     loadEvent().catch(() => setLoading(false));
-  }, [params.id, user]);
+  }, [clientUid, params.id]);
 
   const sortedUploads = useMemo(
     () => [...uploads].sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0)),
